@@ -8,8 +8,9 @@ from ragas.llms.base import BaseRagasLLM
 from ragas.run_config import RunConfig
 
 from ..compat import (
-    OpenAICompletionRequestWithExtraBody,
+    OpenAIChatCompletionRequestWithExtraBody,
     OpenAIEmbeddingsRequestWithExtraBody,
+    OpenAIUserMessageParam,
     SamplingParams,
     TopPSamplingStrategy,
 )
@@ -114,12 +115,14 @@ class LlamaStackInlineLLM(BaseRagasLLM):
                 "provider": "llama_stack",
             }
 
-            # sampling params for this generation should be set via the benchmark config
-            # we will ignore the temperature and stop params passed in here
             for _ in range(n):
-                request = OpenAICompletionRequestWithExtraBody(
+                request = OpenAIChatCompletionRequestWithExtraBody(
                     model=self.model_id,
-                    prompt=prompt.to_string(),
+                    messages=[
+                        OpenAIUserMessageParam(
+                            role="user", content=prompt.to_string()
+                        )
+                    ],
                     max_tokens=self.sampling_params.max_tokens
                     if self.sampling_params
                     else None,
@@ -133,16 +136,17 @@ class LlamaStackInlineLLM(BaseRagasLLM):
                     else None,
                     stop=self.sampling_params.stop if self.sampling_params else None,
                 )
-                response = await self.inference_api.openai_completion(request)
+                response = await self.inference_api.openai_chat_completion(request)
 
                 if not response.choices:
-                    logger.warning("Completion response returned no choices")
+                    logger.warning("Chat completion response returned no choices")
 
-                # Extract text from OpenAI completion response
                 choice = response.choices[0] if response.choices else None
-                text = choice.text if choice else ""
+                text = ""
+                if choice and choice.message:
+                    content = choice.message.content
+                    text = content if isinstance(content, str) else ""
 
-                # Store Llama Stack response info in llm_output
                 llama_stack_info = {
                     "stop_reason": (choice.finish_reason if choice else None),
                     "content_length": len(text),

@@ -22,8 +22,10 @@ from llama_stack_api import (  # API and Provider types; Benchmarks; Eval; Datas
     JobResultRequest,
     JobStatus,
     JobStatusRequest,
+    OpenAIChatCompletionRequestWithExtraBody,
     OpenAICompletionRequestWithExtraBody,
     OpenAIEmbeddingsRequestWithExtraBody,
+    OpenAIUserMessageParam,
     ProviderSpec,
     RemoteProviderSpec,
     RunEvalRequest,
@@ -59,8 +61,10 @@ __all__ = [
     "RunEvalRequest",
     # Inference
     "Inference",
+    "OpenAIChatCompletionRequestWithExtraBody",
     "OpenAICompletionRequestWithExtraBody",
     "OpenAIEmbeddingsRequestWithExtraBody",
+    "OpenAIUserMessageParam",
     "SamplingParams",
     "TopPSamplingStrategy",
     # Scoring
